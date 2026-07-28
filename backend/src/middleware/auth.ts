@@ -1,9 +1,11 @@
 import type { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 
-// Extend Express Request type locally for custom properties
-export interface AuthenticatedRequest extends Request {
-  userId?: string;
+interface AuthenticatedRequest extends Request {
+  user: {
+    id: string;
+    role: string;
+  };
 }
 
 const authValidation = (
@@ -22,7 +24,10 @@ const authValidation = (
         return res.status(401).json({ error: 'User not Authorized!' });
       }
 
-      req.userId = decoded.userId;
+      req.user = {
+          id: decoded.id,
+          role: decoded.role
+      };
       next();
     });
   } else {
