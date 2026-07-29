@@ -6,9 +6,9 @@ export const getActivity = async (req: Request, res: Response) => {
   try{
 
     const param = (req.params ?? {}) as {
-      leadId: string
+      id: string
     }
-    const { leadId } = param;
+    const { id: leadId } = param;
 
     const activity = await prisma.activity.findMany({
       where: {

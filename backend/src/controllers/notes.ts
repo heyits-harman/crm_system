@@ -1,5 +1,6 @@
 import type { Request, Response } from "express";
 import { prisma } from '../../lib/prisma';
+import { Role } from "../../generated/prisma/enums";
 
 export const createNote = async (req: Request, res: Response) => {
   try{
@@ -7,12 +8,21 @@ export const createNote = async (req: Request, res: Response) => {
       content: string
     }
     const param = (req.params ?? {}) as {
-      leadId: string
+      id: string
     }
 
+    const user = req.user;
     const { content } = body;
-    const { leadId } = param;
-    const authorId = req.user.id;
+    const { id: leadId } = param;
+    const authorId = user.id;
+
+    const lead = await prisma.lead.findUnique({
+      where: { id: leadId }
+    })
+
+    if(user.role !== Role.ADMIN && lead?.assignedToId !== user.id){
+      res.status(403).json("Only Admin can create notes on unassigned leads")
+    }
 
     const newNote = await prisma.note.create({
       data: {
@@ -37,12 +47,26 @@ export const getNote = async (req: Request, res: Response) => {
   try{
 
     const param = (req.params ?? {}) as {
-      leadId: string
+      id: string
     }
-    const { leadId } = param;
+    const { id } = param;
 
-    const notes = await prisma.lead.findUnique({
-      where: { id: leadId }
+    const lead = await prisma.lead.findUnique({
+      where: { id: id }
+    })
+
+    const user = req.user;
+    if(user.role !== Role.ADMIN && lead?.assignedToId !== user.id){
+      res.status(403).json("Only Admin can create notes on unassigned leads")
+    }
+
+    const notes = await prisma.note.findMany({
+      where: { 
+        leadId: id 
+      },
+      orderBy: {
+        createdAt: "desc"
+      }
     })
 
     res.status(200).json({success: true, notes});
@@ -60,13 +84,15 @@ export const deleteNote = async (req: Request, res: Response) => {
   try{
 
     const param = (req.params ?? {}) as {
-      noteId: string
+      id: string
     }
-    const { noteId } = param;
+    const { id: noteId } = param;
 
     const userRole = req.user.role;
-    if(userRole !== "ADMIN"){
-      res.status(403).json("Only Admins are allowed to delete a note");
+    if(userRole !== Role.ADMIN){
+      res.status(403).json({
+        success: false,
+        message: "Only Admins are allowed to delete a note"});
     }
 
     await prisma.note.delete({

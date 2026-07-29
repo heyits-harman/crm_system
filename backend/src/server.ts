@@ -13,7 +13,7 @@ app.use(express.json());
 
 app.use('/users', userRoutes);
 app.use('/leads', authValidation, leadsRoutes);
-app.use('/dashborad', authValidation, dashboradRoutes);
+app.use('/dashboard', authValidation, dashboradRoutes);
 
 app.get('/health', async (req: Request, res: Response) => {
   const users = await prisma.user.findMany();
