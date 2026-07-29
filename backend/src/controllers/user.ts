@@ -73,6 +73,7 @@ export const loginUser = async (req: Request, res: Response) => {
       },
       select: {
         id: true,
+        role: true,
         password: true
       }
     })
@@ -86,7 +87,7 @@ export const loginUser = async (req: Request, res: Response) => {
      return res.status(400).json({error: "Invalid password!"});
     }
 
-    const token = jwt.sign({userId: user.id}, process.env.ACCESS_TOKEN!, {expiresIn: "1d"});
+    const token = jwt.sign({id: user.id, role: user.role}, process.env.ACCESS_TOKEN!, {expiresIn: "1d"});
       res.json({message: 'Login Succesfully', token});
 
   } catch(err: any){

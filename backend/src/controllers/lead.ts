@@ -1,36 +1,46 @@
 import type { Request, Response } from "express";
 import { prisma } from '../../lib/prisma';
-import { Role, LeadStatus, ActivityType } from "../../generated/prisma/enums";
+import { LeadStatus, ActivityType } from "../../generated/prisma/enums";
 
 export const createLead = async (req: Request, res: Response) => {
 
-  const body = (req.body ?? {}) as {
-    name: string,
-    email: string,
-    phone?: string,
-    company?: string,
-    message?: string,
-    status: LeadStatus
-  }
+  try{
 
-  const { name, email, phone, company, message } = body;
-  let status = body.status ?? LeadStatus.NEW;
-
-  if(!name || !email){   
-      return res.status(400).json({ error: "INVALID_REQUEST" });
-  } 
-  
-  const newLead = await prisma.lead.create({
-    data:{
-      name: name,
-      email: email,
-      phone: phone ?? null,
-      company: company ?? null,
-      message: message ?? null,
-      status: status
+    const body = (req.body ?? {}) as {
+      name: string,
+      email: string,
+      phone?: string,
+      company?: string,
+      message?: string,
+      status: LeadStatus
     }
-  });
-  return res.status(201).json(newLead);
+
+    const { name, email, phone, company, message } = body;
+    let status = body.status ?? LeadStatus.NEW;
+
+    if(!name || !email){   
+        return res.status(400).json({ error: "INVALID_REQUEST" });
+    } 
+    
+    const newLead = await prisma.lead.create({
+      data:{
+        name: name,
+        email: email,
+        phone: phone ?? null,
+        company: company ?? null,
+        message: message ?? null,
+        status: status
+      }
+    });
+    return res.status(201).json(newLead);
+
+  }catch(error){
+    console.error(error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to create Lead",
+    });
+  }
 
 }
 
@@ -38,6 +48,9 @@ export const getLeads = async (req: Request, res: Response) => {
 
    try {
     const user = req.user;
+    if(!user?.id){
+      throw new Error("USER_ID_MISSING");
+    }
 
     // Pagination
     const page = Math.max(Number(req.query.page) || 1, 1);
@@ -156,12 +169,26 @@ export const updateLead = async (req: Request, res: Response) => {
       id: string
     }
 
+    const body = (req.body ?? {}) as {
+      name?: string,
+      email?: string,
+      phone?: string,
+      company?: string,
+      message?: string,
+      status?: LeadStatus,
+      assignedToId?: string
+    }
+
     const { id } = param;
     const user = req.user;
-    const { name, email, phone, company, message, status, assignedToId } = req.body;
+      if(!user?.id){
+        throw new Error("USER_ID_MISSING");
+      }
+    const { name, email, phone, company, message, status, assignedToId } = body;
 
     // Execute all read/write database operations inside tx
     const updatedLead = await prisma.$transaction(async (tx) => {
+      
       // 1. Check if lead exists
       const lead = await tx.lead.findUnique({
         where: { id },
@@ -176,18 +203,25 @@ export const updateLead = async (req: Request, res: Response) => {
         throw new Error("FORBIDDEN");
       }
 
-      // 3. Update the lead
+      // 3. Check updated fields
+      const updateData: any = {
+        ...(name !== undefined && { name }),
+        ...(email !== undefined && { email }),
+        ...(phone !== undefined && { phone }),
+        ...(company !== undefined && { company }),
+        ...(message !== undefined && { message }),
+        ...(status !== undefined && { status }),
+        ...(assignedToId !== undefined && { assignedToId }),
+      };
+
+      if (Object.keys(updateData).length === 0) {
+        throw new Error("NO_FIELDS_TO_UPDATE");                             //Throw Error if none field is updated
+      }
+
+      // 4. Update the lead
       const updated = await tx.lead.update({
         where: { id },
-        data: {
-          name,
-          email,
-          phone,
-          company,
-          message,
-          status,
-          assignedToId,
-        },
+        data: updateData,
         include: {
           assignedTo: {
             select: {
@@ -199,19 +233,19 @@ export const updateLead = async (req: Request, res: Response) => {
         },
       });
 
-      // 4. Log activity if status changed
+      // 5. Log activity if status changed
       if (status && status !== lead.status) {
         await tx.activity.create({
           data: {
             type: ActivityType.STATUS_CHANGED,
             description: `Status changed from ${lead.status} to ${status}`,
-            leadId: lead.id,
-            userId: user.id,
+            lead: { connect: { id: lead.id } },
+            user: { connect: { id: user.id } },
           },
         });
       }
 
-      // 5. Log activity if assignment changed
+      // 6. Log activity if assignment changed
       if (assignedToId && assignedToId !== lead.assignedToId) {
         const assignee = await tx.user.findUnique({
           where: { id: assignedToId },
@@ -222,8 +256,8 @@ export const updateLead = async (req: Request, res: Response) => {
           data: {
             type: ActivityType.ASSIGNED,
             description: `Lead assigned to ${assignee?.name ?? "unknown"}`,
-            leadId: lead.id,
-            userId: user.id,
+            lead: { connect: { id: lead.id } },
+            user: { connect: { id: user.id } },
           },
         });
       }
@@ -251,6 +285,13 @@ export const updateLead = async (req: Request, res: Response) => {
       return res.status(403).json({
         success: false,
         message: "You are not allowed to update this lead",
+      });
+    }
+
+    if (error.message === "NO_FIELDS_TO_UPDATE") {
+      return res.status(400).json({
+        success: false,
+        message: "You must update atleast one field",
       });
     }
 
@@ -300,6 +341,7 @@ export const deleteLead = async (req: Request, res: Response) => {
       success: true,
       message: "Lead deleted successfully",
     });
+    
   } catch (error) {
     console.error(error);
 
