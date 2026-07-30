@@ -75,7 +75,7 @@ export const PublicLeadSubmissionPage: React.FC = () => {
         <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-6 sm:p-8 shadow-2xl">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5 flex items-center gap-1.5">
+              <label className="text-xs font-medium text-slate-300 mb-1.5 flex items-center gap-1.5">
                 <User className="w-3.5 h-3.5 text-indigo-400" /> Full Name <span className="text-rose-400">*</span>
               </label>
               <input
@@ -88,7 +88,7 @@ export const PublicLeadSubmissionPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5 flex items-center gap-1.5">
+              <label className="text-xs font-medium text-slate-300 mb-1.5 flex items-center gap-1.5">
                 <Mail className="w-3.5 h-3.5 text-indigo-400" /> Email Address <span className="text-rose-400">*</span>
               </label>
               <input
@@ -105,7 +105,7 @@ export const PublicLeadSubmissionPage: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1.5 flex items-center gap-1.5">
+                <label className="text-xs font-medium text-slate-300 mb-1.5 flex items-center gap-1.5">
                   <Phone className="w-3.5 h-3.5 text-indigo-400" /> Phone Number
                 </label>
                 <input
@@ -117,7 +117,7 @@ export const PublicLeadSubmissionPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-slate-300 mb-1.5 flex items-center gap-1.5">
+                <label className="text-xs font-medium text-slate-300 mb-1.5 flex items-center gap-1.5">
                   <Building className="w-3.5 h-3.5 text-indigo-400" /> Company Name
                 </label>
                 <input
@@ -130,7 +130,7 @@ export const PublicLeadSubmissionPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1.5 flex items-center gap-1.5">
+              <label className="text-xs font-medium text-slate-300 mb-1.5 flex items-center gap-1.5">
                 <MessageSquare className="w-3.5 h-3.5 text-indigo-400" /> Message / Details
               </label>
               <textarea
