@@ -58,7 +58,7 @@ export const AppLayout: React.FC = () => {
             </NavLink>
 
             <NavLink
-              to="/leads/create"
+              to="/submit"
               target="_blank"
               className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-800/50 transition group"
             >

@@ -1,4 +1,4 @@
-import api from '../api/axios';
+import api, { publicApi } from '../api/axios';
 import type {
   GetLeadsParams,
   GetLeadsResponse,
@@ -28,8 +28,9 @@ export interface UpdateLeadPayload {
 }
 
 export const leadService = {
+  // Uses publicApi (no auth interceptor) — this is a public unauthenticated endpoint
   createLead: async (payload: CreateLeadPayload): Promise<Lead> => {
-    const response = await api.post('/leads/create', payload);
+    const response = await publicApi.post('/leads/create', payload);
     return response.data;
   },
 

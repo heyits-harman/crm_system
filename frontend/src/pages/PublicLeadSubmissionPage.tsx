@@ -25,8 +25,24 @@ export const PublicLeadSubmissionPage: React.FC = () => {
       setIsSubmitted(true);
       reset();
     } catch (err: any) {
-      console.error(err);
-      toast.error(err.response?.data?.message || err.response?.data?.error || 'Failed to submit form');
+      console.error('Lead submission error:', err);
+
+      // Extract the most meaningful error message
+      const serverMessage =
+        err.response?.data?.message ||
+        err.response?.data?.error ||
+        null;
+
+      if (!err.response) {
+        // Network/CORS/timeout error — Render free tier can be slow to wake up
+        toast.error('Unable to reach the server. Please wait a moment and try again.', {
+          duration: 5000,
+        });
+      } else if (err.response.status === 400) {
+        toast.error(serverMessage || 'Please check your details and try again.');
+      } else {
+        toast.error(serverMessage || 'Submission failed. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -48,7 +64,7 @@ export const PublicLeadSubmissionPage: React.FC = () => {
       </div>
 
       {isSubmitted ? (
-        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center space-y-4 shadow-2xl animate-fadeIn">
+        <div className="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center space-y-4 shadow-2xl">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400">
             <CheckCircle2 className="w-8 h-8" />
           </div>
@@ -75,7 +91,7 @@ export const PublicLeadSubmissionPage: React.FC = () => {
         <div className="bg-slate-900 border border-slate-800/80 rounded-2xl p-6 sm:p-8 shadow-2xl">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
-              <label className="text-xs font-medium text-slate-300 mb-1.5 flex items-center gap-1.5">
+              <label className="flex items-center gap-1.5 text-xs font-medium text-slate-300 mb-1.5">
                 <User className="w-3.5 h-3.5 text-indigo-400" /> Full Name <span className="text-rose-400">*</span>
               </label>
               <input
@@ -88,7 +104,7 @@ export const PublicLeadSubmissionPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="text-xs font-medium text-slate-300 mb-1.5 flex items-center gap-1.5">
+              <label className="flex items-center gap-1.5 text-xs font-medium text-slate-300 mb-1.5">
                 <Mail className="w-3.5 h-3.5 text-indigo-400" /> Email Address <span className="text-rose-400">*</span>
               </label>
               <input
@@ -105,7 +121,7 @@ export const PublicLeadSubmissionPage: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
-                <label className="text-xs font-medium text-slate-300 mb-1.5 flex items-center gap-1.5">
+                <label className="flex items-center gap-1.5 text-xs font-medium text-slate-300 mb-1.5">
                   <Phone className="w-3.5 h-3.5 text-indigo-400" /> Phone Number
                 </label>
                 <input
@@ -117,7 +133,7 @@ export const PublicLeadSubmissionPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="text-xs font-medium text-slate-300 mb-1.5 flex items-center gap-1.5">
+                <label className="flex items-center gap-1.5 text-xs font-medium text-slate-300 mb-1.5">
                   <Building className="w-3.5 h-3.5 text-indigo-400" /> Company Name
                 </label>
                 <input
@@ -130,7 +146,7 @@ export const PublicLeadSubmissionPage: React.FC = () => {
             </div>
 
             <div>
-              <label className="text-xs font-medium text-slate-300 mb-1.5 flex items-center gap-1.5">
+              <label className="flex items-center gap-1.5 text-xs font-medium text-slate-300 mb-1.5">
                 <MessageSquare className="w-3.5 h-3.5 text-indigo-400" /> Message / Details
               </label>
               <textarea
@@ -160,7 +176,8 @@ export const PublicLeadSubmissionPage: React.FC = () => {
 
           <div className="mt-6 pt-4 border-t border-slate-800/80 text-center">
             <Link to="/login" className="text-xs text-slate-400 hover:text-slate-200 transition">
-              Are you a team member? <span className="text-indigo-400 underline">Sign in here</span>
+              Are you a team member?{' '}
+              <span className="text-indigo-400 underline">Sign in here</span>
             </Link>
           </div>
         </div>

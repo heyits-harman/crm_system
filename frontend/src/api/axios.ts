@@ -1,10 +1,11 @@
 import axios from 'axios';
 
+const BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://crm-system-rv6p.onrender.com';
+
+// Authenticated API instance (attaches JWT token)
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://crm-system-rv6p.onrender.com',
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  baseURL: BASE_URL,
+  headers: { 'Content-Type': 'application/json' },
 });
 
 api.interceptors.request.use(
@@ -22,7 +23,6 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response && error.response.status === 401) {
-      // Don't auto logout if trying to login or public actions
       const isAuthEndpoint = error.config?.url?.includes('/users/login');
       if (!isAuthEndpoint) {
         localStorage.removeItem('crm_token');
@@ -35,4 +35,12 @@ api.interceptors.response.use(
   }
 );
 
+// Public API instance — no auth interceptors, used for unauthenticated routes
+export const publicApi = axios.create({
+  baseURL: BASE_URL,
+  headers: { 'Content-Type': 'application/json' },
+  timeout: 30000, // Render free tier can be slow to wake up
+});
+
 export default api;
+
