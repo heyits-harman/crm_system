@@ -6,7 +6,7 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
-    "dev": "tsx src/app.ts"
+    "dev": "tsx src/server.ts"
   },
   "type": "module",
   "keywords": [],
