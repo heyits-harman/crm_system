@@ -4,9 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "dev": "tsx src/server.ts",
+    "start": "node --import tsx src/server.ts",
     "test": "vitest run",
-    "test:watch": "vitest",
-    "dev": "tsx src/server.ts"
+    "test:watch": "vitest"
   },
   "type": "module",
   "keywords": [],

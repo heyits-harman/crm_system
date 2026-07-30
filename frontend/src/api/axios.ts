@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: '', // Uses Vite dev server proxy (/users, /leads, /dashboard)
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://crm-system-rv6p.onrender.com',
   headers: {
     'Content-Type': 'application/json',
   },
