@@ -261,7 +261,7 @@ export const LeadDetailPage: React.FC = () => {
                 No notes posted for this lead yet.
               </p>
             ) : (
-              <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
+              <div className="space-y-3 max-h-100 overflow-y-auto pr-1">
                 {notes.map((note) => (
                   <div
                     key={note.id}
