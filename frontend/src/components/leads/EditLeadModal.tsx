@@ -6,6 +6,7 @@ import { leadService, type UpdateLeadPayload } from '../../services/leadService'
 import type { Lead, LeadStatus } from '../../types/crm';
 import { Spinner } from '../ui/States';
 import { useAuth } from '../../context/AuthContext';
+import { userService, type UserOption } from '../../services/userService';
 
 interface EditLeadModalProps {
   lead: Lead | null;
@@ -30,13 +31,27 @@ export const EditLeadModal: React.FC<EditLeadModalProps> = ({
   onSuccess,
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [users, setUsers] = useState<UserOption[]>([]);
+  const [usersLoading, setUsersLoading] = useState(false);
   const { isAdmin } = useAuth();
+
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
   } = useForm<UpdateLeadPayload>();
+
+  // Fetch users list when modal opens (admin only)
+  useEffect(() => {
+    if (isOpen && isAdmin) {
+      setUsersLoading(true);
+      userService.getUsers()
+        .then(setUsers)
+        .catch(() => setUsers([]))
+        .finally(() => setUsersLoading(false));
+    }
+  }, [isOpen, isAdmin]);
 
   useEffect(() => {
     if (lead) {
@@ -56,8 +71,8 @@ export const EditLeadModal: React.FC<EditLeadModalProps> = ({
     if (!lead) return;
     setIsSubmitting(true);
     try {
-      // Omit empty assignedToId if string is empty
       const payload: UpdateLeadPayload = { ...data };
+      // Remove empty assignedToId so it doesn't override existing assignment
       if (!payload.assignedToId) {
         delete payload.assignedToId;
       }
@@ -102,7 +117,7 @@ export const EditLeadModal: React.FC<EditLeadModalProps> = ({
 
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">Phone Number</label>
+            <label className="block text-xs font-medium text-slate-300 mb-1">Phone</label>
             <input
               type="text"
               {...register('phone')}
@@ -122,7 +137,7 @@ export const EditLeadModal: React.FC<EditLeadModalProps> = ({
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-medium text-slate-300 mb-1">Lead Status</label>
+            <label className="block text-xs font-medium text-slate-300 mb-1">Status</label>
             <select
               {...register('status')}
               className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition"
@@ -135,21 +150,35 @@ export const EditLeadModal: React.FC<EditLeadModalProps> = ({
             </select>
           </div>
 
+          {/* Admin: assign lead by member name via dropdown */}
           {isAdmin && (
             <div>
-              <label className="block text-xs font-medium text-slate-300 mb-1">Assigned User ID</label>
-              <input
-                type="text"
-                {...register('assignedToId')}
-                placeholder="User ID..."
-                className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition"
-              />
+              <label className="block text-xs font-medium text-slate-300 mb-1">
+                Assign To Member
+              </label>
+              {usersLoading ? (
+                <div className="flex items-center gap-2 h-9 text-xs text-slate-400">
+                  <Spinner size="sm" /> Loading members...
+                </div>
+              ) : (
+                <select
+                  {...register('assignedToId')}
+                  className="w-full px-3 py-2 bg-slate-950 border border-slate-800 rounded-lg text-sm text-slate-100 focus:outline-none focus:border-indigo-500 transition"
+                >
+                  <option value="">— Unassigned —</option>
+                  {users.map((u) => (
+                    <option key={u.id} value={u.id}>
+                      {u.name} ({u.role})
+                    </option>
+                  ))}
+                </select>
+              )}
             </div>
           )}
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-slate-300 mb-1">Message / Requirements</label>
+          <label className="block text-xs font-medium text-slate-300 mb-1">Message / Notes</label>
           <textarea
             rows={3}
             {...register('message')}
