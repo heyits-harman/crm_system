@@ -6,9 +6,9 @@ A full-stack CRM (Customer Relationship Management) application built as part of
 
 ## 🚀 Live Demo
 
-**Frontend:** https://your-frontend-url.vercel.app
+**Frontend:** [https://your-frontend-url.vercel.app](https://crm-system-kohl-six.vercel.app/)
 
-**Backend API:** https://your-backend-url.onrender.com
+**Backend API:** [https://your-backend-url.onrender.com](https://crm-system-rv6p.onrender.com)
 
 ---
 
